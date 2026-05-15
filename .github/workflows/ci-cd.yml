@@ -35,7 +35,8 @@ jobs:
       - name: Desplegar Ventas vía Docker Compose
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.EC2_HOST }}
+          # --- DATOS DEL BACKEND (Destino final) ---
+          host: ${{ secrets.EC2_BACKEND_PRIVATE_IP }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
 
