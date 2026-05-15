@@ -46,7 +46,7 @@ jobs:
           proxy_key: ${{ secrets.EC2_SSH_KEY }}
 
           script: |
-            cd /home/ssm-user/DevOps-Infra-EV2
+            cd /home/ec2-user/DevOps-Infra-EV2
             git pull origin main
             docker compose -f docker-compose-back.yml pull
             docker compose -f docker-compose-back.yml up -d
