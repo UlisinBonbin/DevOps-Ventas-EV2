@@ -1,0 +1,126 @@
+---
+# 1. MICROSERVICIO DE DESPACHOS (Backend)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: despachos-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: despachos
+  template:
+    metadata:
+      labels:
+        app: despachos
+    spec:
+      containers:
+      - name: despachos-container
+        image: 837424058127.dkr.ecr.us-east-1.amazonaws.com/innovatech-backend-despachos:latest
+        ports:
+        - containerPort: 8091
+        env:
+        - name: DB_ENDPOINT
+          value: "innovatech-cluster.cluster-cobjlmjezfum.us-east-1.rds.amazonaws.com" # Ej: innovatech-db.cxyz.us-east-1.rds.amazonaws.com
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          value: "innovatech_db"
+        - name: DB_USERNAME
+          value: "admin"
+        - name: DB_PASSWORD
+          value: "Innovatech2026"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: despachos-service
+spec:
+  selector:
+    app: despachos
+  ports:
+    - protocol: TCP
+      port: 8091
+      targetPort: 8091
+  type: ClusterIP # Solo accesible internamente por el clúster
+
+---
+# 2. MICROSERVICIO DE VENTAS (Backend)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ventas-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ventas
+  template:
+    metadata:
+      labels:
+        app: ventas
+    spec:
+      containers:
+      - name: ventas-container
+        image: 837424058127.dkr.ecr.us-east-1.amazonaws.com/innovatech-backend-ventas:latest
+        ports:
+        - containerPort: 8092
+        env:
+        - name: DB_ENDPOINT
+          value: "innovatech-cluster.cluster-cobjlmjezfum.us-east-1.rds.amazonaws.com"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          value: "innovatech_db"
+        - name: DB_USERNAME
+          value: "admin"
+        - name: DB_PASSWORD
+          value: "Innovatech2026"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ventas-service
+spec:
+  selector:
+    app: ventas
+  ports:
+    - protocol: TCP
+      port: 8092
+      targetPort: 8092
+  type: ClusterIP # Solo accesible internamente por el clúster
+
+---
+# 3. FRONTEND (Con Load Balancer Público)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend-container
+        image: 837424058127.dkr.ecr.us-east-1.amazonaws.com/innovatech-frontend:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer # ¡Esto le dice a AWS que cree una URL pública!
