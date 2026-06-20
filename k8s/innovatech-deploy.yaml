@@ -16,7 +16,7 @@ spec:
         - name: ventas-container
           image: 220943776304.dkr.ecr.us-east-1.amazonaws.com/innovatech-backend-ventas:latest
           ports:
-            - containerPort: 8092
+            - containerPort: 8080
           env:
             - name: DB_ENDPOINT
               valueFrom:
@@ -54,5 +54,5 @@ spec:
   ports:
     - protocol: TCP
       port: 8092
-      targetPort: 8092
+      targetPort: 8080
   type: ClusterIP
