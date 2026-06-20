@@ -64,4 +64,4 @@ jobs:
       - name: Desplegar nueva versión en Kubernetes
         run: |
           kubectl apply -f k8s/
-          kubectl rollout restart deployment/ventas-backend
+          kubectl rollout restart deployment/ventas-deployment
