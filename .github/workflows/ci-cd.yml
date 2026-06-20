@@ -58,7 +58,8 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           # Abre el archivo, reemplaza los $VALORES por los secretos y sobrescribe el archivo
-          envsubst < k8s/innovatech-secret.yaml > tmp.yaml && mv tmp.yaml k8s/innovatech-secret.yaml
+          envsubst < k8s/innovatech-secret.yaml > tmp.yaml
+          mv tmp.yaml k8s/innovatech-secret.yaml
 
       # 6. Desplegar los cambios
       - name: Desplegar nueva versión en Kubernetes
