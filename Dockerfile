@@ -27,7 +27,7 @@ USER springuser
 COPY --from=builder /app/target/*.jar app.jar
 
 # Exponemos el puerto.
-EXPOSE 8082
+EXPOSE 8092
 
 # Comando de inicio del contenedor
 ENTRYPOINT ["java", "-jar", "app.jar"]

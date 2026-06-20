@@ -19,20 +19,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: ulises2002/back-ventas:latest
-
-      # --- NUEVA SECCIÓN KUBERNETES ---
+      # 1. Configurar credenciales de AWS primero
       - name: Configurar credenciales de AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -41,11 +28,40 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} # ¡Vital para entornos académicos!
           aws-region: us-east-1
 
+      # 2. Iniciar sesión en Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # 3. Construir y empujar la imagen a ECR
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: innovatech-backend-despachos
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      # 4. Actualizar Kubernetes
       - name: Conectar al clúster EKS
         run: |
-          aws eks update-kubeconfig --region us-east-1 --name innovatech-cluster
+          aws eks update-kubeconfig --region us-east-1 --name innovatech-eks
 
+      # 5. Inyectar secretos de GitHub dentro del archivo YAML
+      - name: Configurar secretos en Kubernetes
+        env:
+          DB_ENDPOINT: ${{ secrets.DB_ENDPOINT }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          # Abre el archivo, reemplaza los $VALORES por los secretos y sobrescribe el archivo
+          envsubst < k8s/innovatech-secret.yaml > tmp.yaml && mv tmp.yaml k8s/innovatech-secret.yaml
+
+      # 6. Desplegar los cambios
       - name: Desplegar nueva versión en Kubernetes
         run: |
-          # Esto le dice a Kubernetes que apague los contenedores viejos y levante los nuevos con la imagen recién subida
+          kubectl apply -f k8s/
           kubectl rollout restart deployment/ventas-backend
