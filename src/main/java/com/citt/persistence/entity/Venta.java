@@ -16,6 +16,7 @@ import java.time.LocalDate;
 
 @Entity
 @Data
+
 @AllArgsConstructor
 @NoArgsConstructor
 
